@@ -67,7 +67,32 @@ fn fmt_error<T: std::fmt::Debug>(error: T) -> Result<ApiStructure, String> {
 
 fn parse(body: String) -> ApiStructure {
     let document = parse_html().one(body);
-    eprintln!("{:?}", document);
+
+    let mut table_vec: Vec<Vec<Vec<String>>> = vec![];
+
+    for table in document.select(".table").unwrap() {
+        for tbody in table.as_node().select("tbody").unwrap() {
+            let mut tr_vec: Vec<Vec<String>> = vec![];
+
+            for tr in tbody.as_node().select("tr").unwrap() {
+                let mut td_vec: Vec<String> = vec![];
+
+                for td in tr.as_node().select("td").unwrap() {
+                    let td_child = td.as_node().first_child().unwrap();
+
+                    if let Some(text) = td_child.as_text() {
+                        td_vec.push(text.borrow().to_string());
+                    }
+                }
+
+                tr_vec.push(td_vec);
+            }
+
+            table_vec.push(tr_vec);
+        }
+    }
+
+    eprintln!("{:?}", table_vec);
 
     ApiStructure {
         functions: vec![],
