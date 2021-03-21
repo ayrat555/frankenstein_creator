@@ -1,0 +1,44 @@
+<h4><a class="anchor" name="sendmediagroup" href="#sendmediagroup" id="sendmediagroup"><i class="anchor-icon"></i></a>sendMediaGroup</h4>
+<p>Use this method to send a group of photos, videos, documents or audios as an album. Documents and audio files can be only grouped in an album with messages of the same type. On success, an array of <a href="#message">Messages</a> that were sent is returned.</p>
+<table class="table">
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>chat_id</td>
+<td>Integer or String</td>
+<td>Yes</td>
+<td>Unique identifier for the target chat or username of the target channel (in the format <code>@channelusername</code>)</td>
+</tr>
+<tr>
+<td>media</td>
+<td>Array of <a href="#inputmediaaudio">InputMediaAudio</a>, <a href="#inputmediadocument">InputMediaDocument</a>, <a href="#inputmediaphoto">InputMediaPhoto</a> and <a href="#inputmediavideo">InputMediaVideo</a></td>
+<td>Yes</td>
+<td>A JSON-serialized array describing messages to be sent, must include 2-10 items</td>
+</tr>
+<tr>
+<td>disable_notification</td>
+<td>Boolean</td>
+<td>Optional</td>
+<td>Sends messages <a href="https://telegram.org/blog/channels-2-0#silent-messages">silently</a>. Users will receive a notification with no sound.</td>
+</tr>
+<tr>
+<td>reply_to_message_id</td>
+<td>Integer</td>
+<td>Optional</td>
+<td>If the messages are a reply, ID of the original message</td>
+</tr>
+<tr>
+<td>allow_sending_without_reply</td>
+<td>Boolean</td>
+<td>Optional</td>
+<td>Pass <em>True</em>, if the message should be sent even if the specified replied-to message is not found</td>
+</tr>
+</tbody>
+</table>
