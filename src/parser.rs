@@ -4,39 +4,74 @@ use kuchiki::{ElementData, NodeDataRef, NodeRef};
 
 #[derive(Debug, PartialEq)]
 pub struct Param {
-    name: String,
-    param_type: String,
-    description: String,
-    required: bool,
+    pub name: String,
+    pub param_type: String,
+    pub description: String,
+    pub required: bool,
+}
+
+enum RustType {
+    Simple(String),
+    Enum(Vec<String>),
+}
+
+struct ParsedType {
+    array: bool,
+    option: bool,
+    rust_type: RustType,
 }
 
 #[derive(Debug)]
 pub struct Function {
-    params: Vec<Param>,
-    description: String,
-    name: String,
+    pub params: Vec<Param>,
+    pub description: String,
+    pub name: String,
 }
 
 #[derive(Debug)]
 pub struct Entity {
-    fields: Vec<Param>,
-    description: String,
-    name: String,
+    pub fields: Vec<Param>,
+    pub description: String,
+    pub name: String,
 }
 
 #[derive(Debug)]
 pub struct ApiStructure {
-    functions: Vec<Function>,
-    entities: Vec<Entity>,
+    pub functions: Vec<Function>,
+    pub entities: Vec<Entity>,
 }
 
 pub struct Parser {
     html: String,
 }
 
+impl Param {
+    pub fn as_rust_type_string(&self) -> ParsedType {
+        let parsed_type = if self.param_type.starts_with("Array of") {
+            let value_without_array = self.param_type.replace("Array of", "");
+            let simple_type = value_without_array.trim();
+
+            eprintln!("{}", simple_type);
+            let parsed_simple_type = self.parse_simple_type(simple_type.to_string());
+
+            format!("Vec<{}>", parsed_simple_type)
+        } else {
+            let simple_type = self.parse_simple_type(self.param_type.clone());
+        };
+    }
+
+    fn parse_simple_type(&self, type_string: String) -> String {
+        match type_string.as_str() {
+            "Boolean" | "True" | "False" => "bool".to_string(),
+            "Integer" => "isize".to_string(),
+            other => other.split(" ").collect::<Vec<&str>>()[0].to_string(),
+        }
+    }
+}
+
 impl Parser {
     pub fn new(html: String) -> Self {
-        Parser { html }
+        Self { html }
     }
 
     pub fn parse(&self) -> ApiStructure {
@@ -231,7 +266,6 @@ mod tests {
         assert_eq!(expected_params, entity.fields);
     }
 
-
     #[test]
     fn it_parses_function_table() {
         let html_table = fs::read_to_string("./test/support/function_table_example.html").unwrap();
@@ -255,5 +289,35 @@ mod tests {
         ];
 
         assert_eq!(expected_params, entity.params);
+    }
+
+    #[test]
+    fn it_converts_simple_param_type_to_rust() {
+        let param = Param {
+            name: "disable_notification".to_string(),
+            param_type: "Boolean".to_string(),
+            description:
+                "Sends messages silently. Users will receive a notification with no sound."
+                    .to_string(),
+            required: false,
+        };
+
+        assert_eq!("Option<bool>".to_string(), param.as_rust_type_string());
+    }
+
+    #[test]
+    fn it_converts_array_type_to_rust() {
+        let param = Param {
+            name: "media".to_string(),
+            param_type:
+                "Array of InputMediaAudio, InputMediaDocument, InputMediaPhoto and InputMediaVideo"
+                    .to_string(),
+            description:
+                "A JSON-serialized array describing messages to be sent, must include 2-10 items"
+                    .to_string(),
+            required: true,
+        };
+
+        assert_eq!("Option<bool>".to_string(), param.as_rust_type_string());
     }
 }

@@ -9,3 +9,4 @@ edition = "2018"
 [dependencies]
 isahc = "1.1"
 kuchiki = "0.8"
+codegen = "0.1.3"

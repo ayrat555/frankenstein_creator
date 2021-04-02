@@ -1,0 +1,92 @@
+<h4><a class="anchor" name="webhookinfo" href="#webhookinfo" id="webhookinfo"><i class="anchor-icon"></i></a>WebhookInfo</h4>
+<p>Contains information about the current status of a webhook.</p>
+<table class="table">
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>url</td>
+<td>String</td>
+<td>Webhook URL, may be empty if webhook is not set up</td>
+</tr>
+<tr>
+<td>has_custom_certificate</td>
+<td>Boolean</td>
+<td>True, if a custom certificate was provided for webhook certificate checks</td>
+</tr>
+<tr>
+<td>pending_update_count</td>
+<td>Integer</td>
+<td>Number of updates awaiting delivery</td>
+</tr>
+<tr>
+<td>ip_address</td>
+<td>String</td>
+<td><em>Optional</em>. Currently used webhook IP address</td>
+</tr>
+<tr>
+<td>last_error_date</td>
+<td>Integer</td>
+<td><em>Optional</em>. Unix time for the most recent error that happened when trying to deliver an update via webhook</td>
+</tr>
+<tr>
+<td>last_error_message</td>
+<td>String</td>
+<td><em>Optional</em>. Error message in human-readable format for the most recent error that happened when trying to deliver an update via webhook</td>
+</tr>
+<tr>
+<td>max_connections</td>
+<td>Integer</td>
+<td><em>Optional</em>. Maximum allowed number of simultaneous HTTPS connections to the webhook for update delivery</td>
+</tr>
+<tr>
+<td>allowed_updates</td>
+<td>Array of String</td>
+<td><em>Optional</em>. A list of update types the bot is subscribed to. Defaults to all update types except <em>chat_member</em></td>
+</tr>
+</tbody>
+</table>
+
+<h4><a class="anchor" name="forwardmessage" href="#forwardmessage" id="forwardmessage"><i class="anchor-icon"></i></a>forwardMessage</h4>
+<p>Use this method to forward messages of any kind. On success, the sent <a href="#message">Message</a> is returned.</p>
+<table class="table">
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>chat_id</td>
+<td>Integer or String</td>
+<td>Yes</td>
+<td>Unique identifier for the target chat or username of the target channel (in the format <code>@channelusername</code>)</td>
+</tr>
+<tr>
+<td>from_chat_id</td>
+<td>Integer or String</td>
+<td>Yes</td>
+<td>Unique identifier for the chat where the original message was sent (or channel username in the format <code>@channelusername</code>)</td>
+</tr>
+<tr>
+<td>disable_notification</td>
+<td>Boolean</td>
+<td>Optional</td>
+<td>Sends the message <a href="https://telegram.org/blog/channels-2-0#silent-messages">silently</a>. Users will receive a notification with no sound.</td>
+</tr>
+<tr>
+<td>message_id</td>
+<td>Integer</td>
+<td>Yes</td>
+<td>Message identifier in the chat specified in <em>from_chat_id</em></td>
+</tr>
+</tbody>
+</table>

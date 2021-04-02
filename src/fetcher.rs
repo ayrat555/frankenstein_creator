@@ -6,7 +6,7 @@ pub struct Fetcher {
 
 impl Fetcher {
     pub fn new(url: String) -> Self {
-        Fetcher { url }
+        Self { url }
     }
 
     pub fn fetch(&self) -> Result<String, String> {
