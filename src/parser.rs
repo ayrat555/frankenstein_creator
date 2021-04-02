@@ -1,6 +1,7 @@
 use kuchiki::parse_html;
 use kuchiki::traits::TendrilSink;
 use kuchiki::{ElementData, NodeDataRef, NodeRef};
+use regex::Regex;
 
 #[derive(Debug, PartialEq)]
 pub struct Param {
@@ -10,15 +11,17 @@ pub struct Param {
     pub required: bool,
 }
 
-enum RustType {
+#[derive(Debug, PartialEq)]
+pub enum RustType {
     Simple(String),
     Enum(Vec<String>),
 }
 
-struct ParsedType {
-    array: bool,
-    option: bool,
-    rust_type: RustType,
+#[derive(Debug, PartialEq)]
+pub struct ParsedType {
+    pub array: bool,
+    pub option: bool,
+    pub rust_type: RustType,
 }
 
 #[derive(Debug)]
@@ -46,25 +49,52 @@ pub struct Parser {
 }
 
 impl Param {
-    pub fn as_rust_type_string(&self) -> ParsedType {
-        let parsed_type = if self.param_type.starts_with("Array of") {
-            let value_without_array = self.param_type.replace("Array of", "");
-            let simple_type = value_without_array.trim();
-
-            eprintln!("{}", simple_type);
-            let parsed_simple_type = self.parse_simple_type(simple_type.to_string());
-
-            format!("Vec<{}>", parsed_simple_type)
+    pub fn as_rust_type(&self) -> ParsedType {
+        if self.param_type.starts_with("Array of") {
+            self.parse_array()
         } else {
-            let simple_type = self.parse_simple_type(self.param_type.clone());
-        };
+            let rust_type = self.parse_type(self.param_type.clone());
+
+            ParsedType {
+                rust_type,
+                option: !self.required,
+                array: false,
+            }
+        }
     }
 
-    fn parse_simple_type(&self, type_string: String) -> String {
+    fn parse_array(&self) -> ParsedType {
+        let value_without_array = self.param_type.replace("Array of", "");
+        let simple_type = value_without_array.trim();
+        let rust_type = self.parse_type(simple_type.to_string());
+
+        ParsedType {
+            rust_type,
+            option: !self.required,
+            array: true,
+        }
+    }
+
+    fn parse_type(&self, type_string: String) -> RustType {
         match type_string.as_str() {
-            "Boolean" | "True" | "False" => "bool".to_string(),
-            "Integer" => "isize".to_string(),
-            other => other.split(" ").collect::<Vec<&str>>()[0].to_string(),
+            "Boolean" | "True" | "False" => RustType::Simple("bool".to_string()),
+            "Integer" => RustType::Simple("isize".to_string()),
+            other => self.maybe_parse_enum_type(other),
+        }
+    }
+
+    fn maybe_parse_enum_type(&self, type_string: &str) -> RustType {
+        let regex = Regex::new(",| and | or").unwrap();
+
+        let types: Vec<String> = regex
+            .split(type_string)
+            .map(|s| s.trim().to_string())
+            .collect();
+
+        if types.len() == 1 {
+            RustType::Simple(types[0].clone())
+        } else {
+            RustType::Enum(types)
         }
     }
 }
@@ -302,7 +332,14 @@ mod tests {
             required: false,
         };
 
-        assert_eq!("Option<bool>".to_string(), param.as_rust_type_string());
+        let rust_type = param.as_rust_type();
+        let expected_result = ParsedType {
+            array: false,
+            option: true,
+            rust_type: RustType::Simple("bool".to_string()),
+        };
+
+        assert_eq!(rust_type, expected_result);
     }
 
     #[test]
@@ -318,6 +355,18 @@ mod tests {
             required: true,
         };
 
-        assert_eq!("Option<bool>".to_string(), param.as_rust_type_string());
+        let rust_type = param.as_rust_type();
+        let expected_result = ParsedType {
+            array: true,
+            option: false,
+            rust_type: RustType::Enum(vec![
+                "InputMediaAudio".to_string(),
+                "InputMediaDocument".to_string(),
+                "InputMediaPhoto".to_string(),
+                "InputMediaVideo".to_string(),
+            ]),
+        };
+
+        assert_eq!(rust_type, expected_result);
     }
 }
