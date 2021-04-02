@@ -1,3 +1,4 @@
+use heck::CamelCase;
 use kuchiki::parse_html;
 use kuchiki::traits::TendrilSink;
 use kuchiki::{ElementData, NodeDataRef, NodeRef};
@@ -61,6 +62,10 @@ impl Param {
                 array: false,
             }
         }
+    }
+
+    pub fn enum_name(&self) -> String {
+        format!("{}Enum", self.name.to_camel_case())
     }
 
     fn parse_array(&self) -> ParsedType {
