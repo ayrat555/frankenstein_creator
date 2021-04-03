@@ -108,14 +108,16 @@ impl Generator {
 
                 let mut field_type: String = "".to_string();
 
-                if type_with_assoc.array {
-                    if let RustType::Simple(type_name) = type_with_assoc.rust_type {
-                        field_type = format!("Vec<{}>", type_name);
-                    }
-                } else {
-                    if let RustType::Simple(type_name) = type_with_assoc.rust_type {
+                if let RustType::Simple(type_name) = type_with_assoc.rust_type {
+                    if type_name == entity.name {
+                        field_type = format!("Box<{}>", type_name);
+                    } else {
                         field_type = type_name;
                     }
+                }
+
+                if type_with_assoc.array {
+                    field_type = format!("Vec<{}>", field_type);
                 }
 
                 if type_with_assoc.option {
@@ -207,7 +209,7 @@ struct WebhookInfo {
     last_error_date: Option<isize>,
     last_error_message: Option<String>,
     max_connections: Option<isize>,
-    allowed_updates: Option<Array<String>>,
+    allowed_updates: Option<Vec<String>>,
 }
 
 #[derive(Debug)]
