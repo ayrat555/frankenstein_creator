@@ -1,4 +1,5 @@
 use frankenstein_creator::fetcher::Fetcher;
+use frankenstein_creator::generator::Generator;
 use frankenstein_creator::parser::Parser;
 
 fn main() {
@@ -6,5 +7,11 @@ fn main() {
         .fetch()
         .unwrap();
 
-    Parser::new(html).parse();
+    let api_structure = Parser::new(html).parse();
+
+    let mut generator = Generator::new(api_structure);
+
+    generator.generate();
+
+    println!("{}", generator.to_string());
 }

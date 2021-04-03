@@ -79,6 +79,13 @@ impl Param {
         format!("{}Enum", self.name.to_camel_case())
     }
 
+    pub fn field_name(&self) -> String {
+        match self.name.as_str() {
+            "type" => "type_field".to_string(),
+            other => other.to_string(),
+        }
+    }
+
     fn parse_array(&self) -> ParsedType {
         let value_without_array = self.param_type.replace("Array of", "");
         let simple_type = value_without_array.trim();
@@ -94,7 +101,8 @@ impl Param {
     fn parse_type(&self, type_string: String) -> RustType {
         match type_string.as_str() {
             "Boolean" | "True" | "False" => RustType::Simple("bool".to_string()),
-            "Integer" => RustType::Simple("isize".to_string()),
+            "Float" | "Float number" => RustType::Simple("f64".to_string()),
+            "Integer" | "Integer number" => RustType::Simple("isize".to_string()),
             other => self.maybe_parse_enum_type(other),
         }
     }
