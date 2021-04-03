@@ -21,6 +21,7 @@ impl Generator {
     pub fn generate(&mut self) -> Result<(), String> {
         self.generate_enums();
         self.generate_entities();
+        // self.generate_functions()
 
         Ok(())
     }
@@ -38,8 +39,35 @@ impl Generator {
                     let enum_name = field.enum_name();
                     let new_enum = self.scope.new_enum(&enum_name);
 
-                    for variant in variants {
-                        new_enum.push_variant(Variant::new(&variant));
+                    for rust_type in variants {
+                        match rust_type {
+                            RustType::Simple(_) => {
+                                new_enum.push_variant(Variant::new(&rust_type.variant_name()));
+                            }
+
+                            _ => (),
+                        }
+                    }
+                }
+            }
+        }
+
+        for function in &self.structure.functions {
+            for param in &function.params {
+                let parsed_type = param.as_rust_type();
+
+                if let RustType::Enum(variants) = parsed_type.rust_type {
+                    let enum_name = param.enum_name();
+                    let new_enum = self.scope.new_enum(&enum_name);
+
+                    for rust_type in variants {
+                        match rust_type {
+                            RustType::Simple(_) => {
+                                new_enum.push_variant(Variant::new(&rust_type.variant_name()));
+                            }
+
+                            _ => (),
+                        }
                     }
                 }
             }
@@ -104,7 +132,17 @@ mod tests {
 
         let mut generator = Generator::new(structure);
 
-        let expect = r#"#[derive(Debug)]
+        let expect = r#"enum ChatIdEnum {
+    IsizeVariant(isize),
+    StringVariant(String),
+}
+
+enum FromChatIdEnum {
+    IsizeVariant(isize),
+    StringVariant(String),
+}
+
+#[derive(Debug)]
 struct WebhookInfo {
     url: String,
     has_custom_certificate: bool,

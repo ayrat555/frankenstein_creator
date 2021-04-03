@@ -12,10 +12,10 @@ pub struct Param {
     pub required: bool,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum RustType {
     Simple(String),
-    Enum(Vec<String>),
+    Enum(Vec<RustType>),
 }
 
 #[derive(Debug, PartialEq)]
@@ -47,6 +47,17 @@ pub struct ApiStructure {
 
 pub struct Parser {
     html: String,
+}
+
+impl RustType {
+    pub fn variant_name(&self) -> String {
+        match self {
+            RustType::Simple(name) => {
+                format!("{}Variant({})", name.to_camel_case(), name)
+            }
+            RustType::Enum(_) => panic!("Enum variant name is only available fro simple types"),
+        }
+    }
 }
 
 impl Param {
@@ -91,15 +102,19 @@ impl Param {
     fn maybe_parse_enum_type(&self, type_string: &str) -> RustType {
         let regex = Regex::new(",| and | or").unwrap();
 
-        let types: Vec<String> = regex
+        let string_types: Vec<String> = regex
             .split(type_string)
             .map(|s| s.trim().to_string())
             .collect();
 
-        if types.len() == 1 {
-            RustType::Simple(types[0].clone())
+        if string_types.len() == 1 {
+            RustType::Simple(string_types[0].clone())
         } else {
-            RustType::Enum(types)
+            let simple_types: Vec<RustType> = string_types
+                .iter()
+                .map(|s| self.parse_type(s.trim().to_string()))
+                .collect();
+            RustType::Enum(simple_types)
         }
     }
 }
@@ -365,10 +380,10 @@ mod tests {
             array: true,
             option: false,
             rust_type: RustType::Enum(vec![
-                "InputMediaAudio".to_string(),
-                "InputMediaDocument".to_string(),
-                "InputMediaPhoto".to_string(),
-                "InputMediaVideo".to_string(),
+                RustType::Simple("InputMediaAudio".to_string()),
+                RustType::Simple("InputMediaDocument".to_string()),
+                RustType::Simple("InputMediaPhoto".to_string()),
+                RustType::Simple("InputMediaVideo".to_string()),
             ]),
         };
 
