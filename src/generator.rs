@@ -20,12 +20,19 @@ impl Generator {
         }
     }
 
-    pub fn generate(&mut self) -> Result<(), String> {
+    pub fn generate(&mut self) {
         self.generate_enums();
-        self.generate_entities();
-        self.generate_function_params();
+        self.generate_structs();
+    }
 
-        Ok(())
+    pub fn generate_function_data(&mut self) {
+        self.generate_function_enums();
+        self.generate_function_structs();
+    }
+
+    pub fn generate_entity_data(&mut self) {
+        self.generate_entity_enums();
+        self.generate_entity_structs();
     }
 
     pub fn to_string(&self) -> String {
@@ -33,6 +40,16 @@ impl Generator {
     }
 
     fn generate_enums(&mut self) {
+        self.generate_entity_enums();
+        self.generate_function_enums();
+    }
+
+    fn generate_structs(&mut self) {
+        self.generate_entity_structs();
+        self.generate_function_structs();
+    }
+
+    fn generate_entity_enums(&mut self) {
         for entity in &self.structure.entities {
             for field in &entity.fields {
                 let parsed_type = field.as_rust_type();
@@ -58,7 +75,9 @@ impl Generator {
                 }
             }
         }
+    }
 
+    fn generate_function_enums(&mut self) {
         for function in &self.structure.functions {
             for param in &function.params {
                 let parsed_type = param.as_rust_type();
@@ -86,7 +105,7 @@ impl Generator {
         }
     }
 
-    fn generate_entities(&mut self) {
+    fn generate_entity_structs(&mut self) {
         for entity in &self.structure.entities {
             let strct = self.scope.new_struct(&entity.name).derive("Debug");
 
@@ -129,7 +148,7 @@ impl Generator {
         }
     }
 
-    fn generate_function_params(&mut self) {
+    fn generate_function_structs(&mut self) {
         for function in &self.structure.functions {
             let struct_name = format!("{}Params", function.name.to_camel_case());
             let strct = self.scope.new_struct(&struct_name).derive("Debug");
@@ -220,7 +239,8 @@ struct ForwardMessageParams {
     message_id: isize,
 }"#;
 
-        assert!(generator.generate().is_ok());
+        generator.generate();
+
         assert_eq!(expect, generator.to_string());
     }
 }
