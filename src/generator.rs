@@ -60,7 +60,14 @@ impl Generator {
                     if !self.created_enums.contains(&enum_name) {
                         self.created_enums.push(enum_name.clone());
 
-                        let new_enum = self.scope.new_enum(&enum_name).derive("Debug");
+                        let new_enum = self
+                            .scope
+                            .new_enum(&enum_name)
+                            .vis("pub")
+                            .derive("Clone")
+                            .derive("Debug")
+                            .derive("Serialize")
+                            .derive("Deserialize");
 
                         for rust_type in variants {
                             match rust_type {
@@ -88,7 +95,14 @@ impl Generator {
                     if !self.created_enums.contains(&enum_name) {
                         self.created_enums.push(enum_name.clone());
 
-                        let new_enum = self.scope.new_enum(&enum_name).derive("Debug");
+                        let new_enum = self
+                            .scope
+                            .new_enum(&enum_name)
+                            .vis("pub")
+                            .derive("Clone")
+                            .derive("Debug")
+                            .derive("Serialize")
+                            .derive("Deserialize");
 
                         for rust_type in variants {
                             match rust_type {
@@ -107,7 +121,16 @@ impl Generator {
 
     fn generate_entity_structs(&mut self) {
         for entity in &self.structure.entities {
-            let strct = self.scope.new_struct(&entity.name).derive("Debug");
+            let strct = self
+                .scope
+                .new_struct(&entity.name)
+                .vis("pub")
+                .derive("Debug")
+                .derive("Builder")
+                .derive("Default")
+                .derive("Clone")
+                .derive("Serialize")
+                .derive("Deserialize");
 
             for field in &entity.fields {
                 let parsed_type = field.as_rust_type();
@@ -151,7 +174,16 @@ impl Generator {
     fn generate_function_structs(&mut self) {
         for function in &self.structure.functions {
             let struct_name = format!("{}Params", function.name.to_camel_case());
-            let strct = self.scope.new_struct(&struct_name).derive("Debug");
+            let strct = self
+                .scope
+                .new_struct(&struct_name)
+                .vis("pub")
+                .derive("Debug")
+                .derive("Builder")
+                .derive("Default")
+                .derive("Clone")
+                .derive("Serialize")
+                .derive("Deserialize");
 
             for field in &function.params {
                 let parsed_type = field.as_rust_type();
