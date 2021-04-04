@@ -78,7 +78,7 @@ impl Generator {
             new_fn.line(body);
 
             for (required_field_name, required_field_type) in required_fields {
-                imp.new_fn(required_field_name)
+                imp.new_fn(&format!("set_{}", required_field_name))
                     .vis("pub")
                     .arg_mut_self()
                     .arg(required_field_name, Type::new(required_field_type))
@@ -89,7 +89,7 @@ impl Generator {
             }
 
             for (optional_field_name, optional_field_type) in optional_fields {
-                imp.new_fn(optional_field_name)
+                imp.new_fn(&format!("set_{}", optional_field_name))
                     .vis("pub")
                     .arg_mut_self()
                     .arg(
@@ -100,6 +100,27 @@ impl Generator {
                         "self.{} = {};",
                         optional_field_name, optional_field_name
                     ));
+            }
+
+            for (required_field_name, required_field_type) in required_fields {
+                let body = match required_field_type.as_str() {
+                    "isize" | "f64" | "bool" => format!("self.{}", required_field_name),
+                    _ => format!("self.{}.clone()", required_field_name),
+                };
+
+                imp.new_fn(&format!("{}", required_field_name))
+                    .vis("pub")
+                    .arg_ref_self()
+                    .line(&body)
+                    .ret(Type::new(required_field_type));
+            }
+
+            for (optional_field_name, optional_field_type) in optional_fields {
+                imp.new_fn(&format!("{}", optional_field_name))
+                    .vis("pub")
+                    .arg_ref_self()
+                    .line(&format!("self.{}.clone()", optional_field_name))
+                    .ret(Type::new(&format!("Option<{}>", optional_field_type)));
             }
         }
     }
