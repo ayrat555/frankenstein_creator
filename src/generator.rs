@@ -2,12 +2,14 @@ use crate::parser::ApiStructure;
 use crate::parser::ParsedType;
 use crate::parser::RustType;
 use codegen::Scope;
+use codegen::Type;
 use codegen::Variant;
 use heck::CamelCase;
 
 pub struct Generator {
     structure: ApiStructure,
     created_enums: Vec<String>,
+    created_structs: Vec<(String, Vec<(String, String)>, Vec<(String, String)>)>,
     scope: Scope,
 }
 
@@ -17,22 +19,26 @@ impl Generator {
             structure,
             scope: Scope::new(),
             created_enums: vec![],
+            created_structs: vec![],
         }
     }
 
     pub fn generate(&mut self) {
         self.generate_enums();
         self.generate_structs();
+        self.generate_functions();
     }
 
     pub fn generate_function_data(&mut self) {
         self.generate_function_enums();
         self.generate_function_structs();
+        self.generate_functions();
     }
 
     pub fn generate_entity_data(&mut self) {
         self.generate_entity_enums();
         self.generate_entity_structs();
+        self.generate_functions();
     }
 
     pub fn to_string(&self) -> String {
@@ -47,6 +53,55 @@ impl Generator {
     fn generate_structs(&mut self) {
         self.generate_entity_structs();
         self.generate_function_structs();
+    }
+
+    fn generate_functions(&mut self) {
+        for (struct_name, required_fields, optional_fields) in &self.created_structs {
+            let imp = self.scope.new_impl(struct_name);
+
+            let new_fn = imp.new_fn("new").vis("pub").ret(Type::new("Self"));
+
+            let mut body = "Self {".to_string();
+
+            for (required_field_name, required_field_type) in required_fields {
+                new_fn.arg(required_field_name, Type::new(required_field_type));
+
+                body.push_str(&format!("{},", required_field_name));
+            }
+
+            for (optional_field_name, _) in optional_fields {
+                body.push_str(&format!("{}: None,", optional_field_name));
+            }
+
+            body.push_str("}");
+
+            new_fn.line(body);
+
+            for (required_field_name, required_field_type) in required_fields {
+                imp.new_fn(required_field_name)
+                    .vis("pub")
+                    .arg_mut_self()
+                    .arg(required_field_name, Type::new(required_field_type))
+                    .line(&format!(
+                        "self.{} = {};",
+                        required_field_name, required_field_name
+                    ));
+            }
+
+            for (optional_field_name, optional_field_type) in optional_fields {
+                imp.new_fn(optional_field_name)
+                    .vis("pub")
+                    .arg_mut_self()
+                    .arg(
+                        optional_field_name,
+                        Type::new(&format!("Option<{}>", optional_field_type)),
+                    )
+                    .line(&format!(
+                        "self.{} = {};",
+                        optional_field_name, optional_field_name
+                    ));
+            }
+        }
     }
 
     fn generate_entity_enums(&mut self) {
@@ -126,11 +181,12 @@ impl Generator {
                 .new_struct(&entity.name)
                 .vis("pub")
                 .derive("Debug")
-                .derive("Builder")
-                .derive("Default")
                 .derive("Clone")
                 .derive("Serialize")
                 .derive("Deserialize");
+
+            let mut required_fields: Vec<(String, String)> = vec![];
+            let mut optional_fields: Vec<(String, String)> = vec![];
 
             for field in &entity.fields {
                 let parsed_type = field.as_rust_type();
@@ -163,11 +219,17 @@ impl Generator {
                 }
 
                 if type_with_assoc.option {
+                    optional_fields.push((field.field_name(), field_type.clone()));
                     field_type = format!("Option<{}>", field_type)
+                } else {
+                    required_fields.push((field.field_name(), field_type.clone()));
                 }
 
                 strct.field(&field.field_name(), field_type);
             }
+
+            self.created_structs
+                .push((entity.name.clone(), required_fields, optional_fields));
         }
     }
 
@@ -179,11 +241,12 @@ impl Generator {
                 .new_struct(&struct_name)
                 .vis("pub")
                 .derive("Debug")
-                .derive("Builder")
-                .derive("Default")
                 .derive("Clone")
                 .derive("Serialize")
                 .derive("Deserialize");
+
+            let mut required_fields: Vec<(String, String)> = vec![];
+            let mut optional_fields: Vec<(String, String)> = vec![];
 
             for field in &function.params {
                 let parsed_type = field.as_rust_type();
@@ -214,11 +277,16 @@ impl Generator {
                 }
 
                 if type_with_assoc.option {
+                    optional_fields.push((field.field_name(), field_type.clone()));
                     field_type = format!("Option<{}>", field_type)
+                } else {
+                    required_fields.push((field.field_name(), field_type.clone()));
                 }
 
                 strct.field(&field.field_name(), field_type);
             }
+            self.created_structs
+                .push((struct_name, required_fields, optional_fields));
         }
     }
 }
