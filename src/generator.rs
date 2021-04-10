@@ -1,6 +1,7 @@
 use crate::parser::ApiStructure;
 use crate::parser::ParsedType;
 use crate::parser::RustType;
+use codegen::Field;
 use codegen::Scope;
 use codegen::Type;
 use codegen::Variant;
@@ -246,7 +247,11 @@ impl Generator {
                     required_fields.push((field.field_name(), field_type.clone()));
                 }
 
-                strct.field(&field.field_name(), field_type);
+                let mut gen_field = Field::new(&field.field_name(), field_type);
+
+                gen_field.annotation(vec![&field.annotation()]);
+
+                strct.push_field(gen_field);
             }
 
             self.created_structs
@@ -304,7 +309,11 @@ impl Generator {
                     required_fields.push((field.field_name(), field_type.clone()));
                 }
 
-                strct.field(&field.field_name(), field_type);
+                let mut gen_field = Field::new(&field.field_name(), field_type);
+
+                gen_field.annotation(vec![&field.annotation()]);
+
+                strct.push_field(gen_field);
             }
             self.created_structs
                 .push((struct_name, required_fields, optional_fields));

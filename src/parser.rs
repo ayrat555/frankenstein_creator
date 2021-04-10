@@ -86,6 +86,13 @@ impl Param {
         }
     }
 
+    pub fn annotation(&self) -> String {
+        match self.name.as_str() {
+            "type" => "#[serde(rename = \"type\")]".to_string(),
+            other => "".to_string(),
+        }
+    }
+
     fn parse_array(&self) -> ParsedType {
         let value_without_array = self.param_type.replace("Array of", "");
         let simple_type = value_without_array.trim();

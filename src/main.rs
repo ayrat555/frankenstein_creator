@@ -11,7 +11,7 @@ fn main() {
 
     let mut generator = Generator::new(api_structure);
 
-    generator.generate();
+    generator.generate_entity_data();
 
     println!("{}", generator.to_string());
 }
