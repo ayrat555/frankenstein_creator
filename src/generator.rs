@@ -144,7 +144,8 @@ impl Generator {
                             .derive("Clone")
                             .derive("Debug")
                             .derive("Serialize")
-                            .derive("Deserialize");
+                            .derive("Deserialize")
+                            .derive("PartialEq");
 
                         for rust_type in variants {
                             match rust_type {
@@ -179,7 +180,8 @@ impl Generator {
                             .derive("Clone")
                             .derive("Debug")
                             .derive("Serialize")
-                            .derive("Deserialize");
+                            .derive("Deserialize")
+                            .derive("PartialEq");
 
                         for rust_type in variants {
                             match rust_type {
@@ -205,7 +207,8 @@ impl Generator {
                 .derive("Debug")
                 .derive("Clone")
                 .derive("Serialize")
-                .derive("Deserialize");
+                .derive("Deserialize")
+                .derive("PartialEq");
 
             let mut required_fields: Vec<(String, String)> = vec![];
             let mut optional_fields: Vec<(String, String)> = vec![];
@@ -269,7 +272,8 @@ impl Generator {
                 .derive("Debug")
                 .derive("Clone")
                 .derive("Serialize")
-                .derive("Deserialize");
+                .derive("Deserialize")
+                .derive("PartialEq");
 
             let mut required_fields: Vec<(String, String)> = vec![];
             let mut optional_fields: Vec<(String, String)> = vec![];
