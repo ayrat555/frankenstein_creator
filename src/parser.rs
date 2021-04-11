@@ -87,10 +87,16 @@ impl Param {
     }
 
     pub fn annotation(&self) -> String {
-        match self.name.as_str() {
+        let mut annotation = match self.name.as_str() {
             "type" => "#[serde(rename = \"type\")]".to_string(),
-            other => "".to_string(),
+            _other => "".to_string(),
+        };
+
+        if !self.required {
+            annotation.push_str("\n#[serde(skip_serializing_if = \"Option::is_none\")]");
         }
+
+        annotation
     }
 
     fn parse_array(&self) -> ParsedType {
