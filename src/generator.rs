@@ -105,7 +105,9 @@ impl Generator {
 
             for (required_field_name, required_field_type) in required_fields {
                 let body = match required_field_type.as_str() {
-                    "isize" | "f64" | "bool" => format!("self.{}", required_field_name),
+                    "isize" | "f64" | "bool" => {
+                        format!("self.{}", required_field_name)
+                    }
                     _ => format!("self.{}.clone()", required_field_name),
                 };
 
@@ -117,10 +119,17 @@ impl Generator {
             }
 
             for (optional_field_name, optional_field_type) in optional_fields {
+                let body = match optional_field_type.as_str() {
+                    "isize" | "f64" | "bool" => {
+                        format!("self.{}", optional_field_name)
+                    }
+                    _ => format!("self.{}.clone()", optional_field_name),
+                };
+
                 imp.new_fn(&format!("{}", optional_field_name))
                     .vis("pub")
                     .arg_ref_self()
-                    .line(&format!("self.{}.clone()", optional_field_name))
+                    .line(&body)
                     .ret(Type::new(&format!("Option<{}>", optional_field_type)));
             }
         }
