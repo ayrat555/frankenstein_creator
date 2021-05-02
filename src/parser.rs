@@ -80,10 +80,12 @@ impl Param {
     }
 
     pub fn field_name(&self) -> String {
-        match self.name.as_str() {
+        let name = match self.name.as_str() {
             "type" => "type_field".to_string(),
             other => other.to_string(),
-        }
+        };
+
+        format!("pub {}", name)
     }
 
     pub fn annotation(&self) -> String {
